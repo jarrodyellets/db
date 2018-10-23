@@ -1,0 +1,10 @@
+**/node_modules
+**/package-lock.json
+
+coverage.*
+packages/*/coverage.*
+
+**/.DS_Store
+**/._*
+
+**/*.pem
