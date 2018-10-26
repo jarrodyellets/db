@@ -1,18 +1,16 @@
-# mockDB Client API Reference
+# mockDB  API Reference
 
 
-- [Client API](#clientapi)
+- [mockDB API](#mockdbapi)
   - [Load API](#load)
   - [Server](#server)
     - [`server.start()`](#server.start)
-  - [Database](#database)
-    - [`new`](#new)
+  - [Client](#client)
+    - [Client properties](#client-properties)
       - [`client.location`](#client.location)
       - [`client.database`](#client.database)
     - [`client.create()`](#client.create)
     - [`client.table(name, id)`](#client.table)
-      - [`client.table.uuid`](#client.table.uuid)
-      - [`client.table.increment`](#client.table.increment)
     - [`client.{tableName}.insert(data)`](#client.insert)
     - [`client.{tableName}.get(id)`](#client.get)
     - [`client.{tableName}.update(data, upsert)`](#client.update)
@@ -25,23 +23,23 @@
         
         
 
-## <a name="clientapi" /> Client API
+# <a name="mockdbapi" /> mockDB API
 
 ### <a name="load" /> Load API
 
-To load the mockDb Client API, type the following: 
+To load the mockDB API, type the following: 
 
 ```js
-const Db = require('@realmark/db')
+const Db = require('@realmark/db');
 ```
 
-### <a name="server" /> Server
+## <a name="server" /> Server
 
 The database runs on a hapi.js server and must be started in order for mockDB to work.  
 
-#### <a name="server.start" /> `server.start()`
+### <a name="server.start" /> `server.start()`
 
-Its best to run the server in a asynchronous function.  To start the server, run the following:
+Its best to run the server in an asynchronous function.  To start the server, run the following:
 
 ```js
 const init = async () => {
@@ -52,13 +50,11 @@ const init = async () => {
 init();
 ```
 
-### <a name="database" /> Database
+## <a name="client" /> Client
 
-Before you can create a new database, you first have to create a new database object.  
+Once the server is running, you can create a new client object.
 
-#### <a name="new" /> `new`
-
-To create a new database object, run the following:
+To create a new client object, run the following:
 
 ```js
 const client = new Db.Client({
@@ -67,11 +63,16 @@ const client = new Db.Client({
 });
 ```
 
-The database object takes two parameters: [`location`](#client.location) and [`database`](#client.database)
+The client object has two properties: [`location`](#client.location) and [`database`](#client.database)
+
+### <a name="client-properties" /> Client properties  
+
 
 #### <a name="client.location" /> `client.location`
 
-The `location` parameter is required and is the location of your database server. The `location` parameter must be an http address with the correct http header.  You can also use a variable such as:
+Type: `string`.
+
+The `location` property is required and is the location of your database server. The `location` property must be an HTTP address with the correct HTTP header.  You can also use a variable such as:
 
 ```js
 location: server.info.uri
@@ -79,15 +80,20 @@ location: server.info.uri
 
 #### <a name="client.database"> `client.database`
 
-The `database` parameter is the name of your database.  This `database` parameter is a `string` and only contains letters, either upper or lowercase.
+Type: `string`.
 
-#### <a name="client.create"> `client.create()`
+The `database` property is the name of your database.  This `database` property can only contains letters, either upper or lowercase. If no value is entered, the database name will be `undefined`.
 
-After you create your new database object, you then need to create to database on the server.  To do this, run the following:
+
+### <a name="client.create"> `client.create()`
+
+Creates a new database after you created the client object.
 
 ```js
-client.create()
+client.create();
 ```
+
+Return value: none.
 
 - Note, that this function needs to be run after the server has started.  If need-be, you can run this command in the `init` function you create earlier, like so:
 
@@ -107,9 +113,9 @@ const init = async () => {
 init();
 ```
 
-#### <a name="client.table" /> `client.table(name, id)`
+### <a name="client.table" /> `client.table(name, id)`
 
-Once your database has been created, you then need to make a database `table`.  The `table` is where the database will store all of your data.  Each database can hold multiple tables.  To create a new `table`, run the following:
+Adds a new table to the database. Each database can store multiple tables.  To create a new table, run the following:
 
 ```js
 client.table(name, id);
@@ -117,25 +123,15 @@ client.table(name, id);
 
 - `name` is a required `string` and is the name of the table.
 
-- `id` is a required `string` and sets what kind of id's you want your table to have.  Value can either be [`uuid`](#client.table.options) or [`increment`](#client.table.options).
+- `id` is a required `object` and sets the type of id's the database table will have. The key `id` will have a value of an object with a key of `type` and a value of either `uuid` or `increment`.
 
-#### <a name="client.table.uuid" /> `client.table.uuid`  
+  - `uuid` will use a 128 bit unique identifier for your id's. 
 
-`uuid` will use a 128 bit unique identifier for your id's. 
+  - `increment` will increment the id's base on the increment options.  `increment` will takes two additional parameters, `initial` and `radix`.
 
-```js
-client.table('test', { id: { type: 'uuid' } });
-```
+     - `initial` is a `number` sets the initial number the id's will start with.  This parameter must be `0` or greater.  The default is `1`.
 
-This will create a table called `test` that uses `uuid` for its id's.
-
-#### <a name="client.table.increment" /> `client.table.increment`
-
-`increment` will increment the id's base on the increment options. `increment` takes two aditional parameters, `initial` and `radix`.
-
-- `initial` sets the initial number the id's will start with.  This parameter must be `0` or greater.  The default is `1`.
-
-- `radix` sets the radix of the `increment`.  The `radix` is a number and must be between `2` and `36`, with `62` being allowed.  The default is `10`.
+     - `radix` is a `number` and sets the radix of the `increment`.  The `radix` is a number and must be between `2` and `36`, with `62` being allowed.  The default is `10`.
 
 ```js
 client.table('test', { id: { type: 'increment', inital: 0, radix: 62 } });
@@ -143,29 +139,36 @@ client.table('test', { id: { type: 'increment', inital: 0, radix: 62 } });
 
 This will create a table called `test` that uses `increment` id's with an initial `id` of `0` and a `radix` of `62`.
 
-#### <a name="client.insert" /> `client.{tableName}.insert(data)`
+Return value: none.
 
-The `insert` method will insert a data into your database table. To insert data, run the following:
+
+### <a name="client.insert" /> `client.{tableName}.insert(data)`
+
+The `insert(data)` method will insert a data into your database table. To insert data, run the following:
 
 ```js
-client.{tableName}.insert({id: x1, a: 1});
+client.{tableName}.insert({id: 'x1', a: 1});
 ```
 
-- `data` is the data that you want to insert into your table.  If you don't include an `id`, the table will assign an id based on your [`client.table(data, id)`](#client.table) settings.
+- `data` is the data that you want to insert into your table.  If you don't include an `id`, the table will assign an id based on your `table` settings. `data` can either be an `object` or an `array` of `objects`.
+
+Return value: none.
 
 You can add multiple items by using an array:
 
 ```js
-client.{tableName}.insert([{id: x1, a: 1}, {id: x2, a: 2}]);
+client.{tableName}.insert([{id: 'x1', a: 1}, {id: 'x2', a: 2}]);
 ```
 
 If you enter data with an id that already exists, the database will overwrite the existing data with the data from the `insert` command.
 
-#### <a name="client.get" /> `client.{tableName}.get(id)`
+### <a name="client.get" /> `client.{tableName}.get(id)`
 
 The `get(id)` method will retrieve data that matches the id.
 
 - `id` is a `string` and the id of the data you want to retrieve from the database.
+
+Return value: `object`
 
 See the following:
 
@@ -176,13 +179,15 @@ client.{tableName}.get('x1');
 
 This will return `{id: 'x1', a: 1}`.
 
-#### <a name="client.update" /> `client.{tableName}.update(data, upsert)`
+### <a name="client.update" /> `client.{tableName}.update(data, upsert)`
 
-The `update(data, upsert)` method will update currently stored data.  The `upsert` option is a boolean and will allow to insert the data if the data currently is not store.  The default for `upsert` is `false`.  See the following:
+The `update(data, upsert)` method will update currently stored data.  The `upsert` option will allow to insert the data if the data is not currently stored in the table.
 
-- `data` is the data you want to update on the database.  This must include the `id`
+- `data` is the data you want to update on the database.  This must include the `id`.
 
-- `upsert` is a boolean and will allow you to insert the data if the data currently is not stored on the database.  The default for `upsert` is `false`.
+- `upsert` is an `object` and will allow you to insert the data if the data currently is not stored on the database.  The `upsert` object has a key of `insert` which takes a `boolean` as a value. The default value for `insert` is `false`.
+
+Return value: none.
 
 See the following:
 
@@ -204,40 +209,44 @@ client.{tableName}.get(['x1', 'x2');
 
 This will return: `[{id: 'x1', a: 1}, {id: 'x2', a: 5}]`.
 
-#### <a name="client.query" /> `client.{tableName}.query(criteria)`
+### <a name="client.query" /> `client.{tableName}.query(criteria)`
 
 The `query(criteria)` method will return all the data that matches the `criteria`.
 
-- `criteria` is any data you want to find in the database.  If `criteria` is left blank, the `query` method will return the entire table.
+- `criteria` is an `object` and is the data you want to find in the table.  If `criteria` is left blank, the `query` method will return the entire table.
+
+Return value: `array` of `objects`.
 
 See the following:
 
 ```js
-client.{tableName}.insert([{id: x1, a: 1}, {id: x2, a: 2}]);
+client.{tableName}.insert([{id: 'x1', a: 1}, {id: 'x2', a: 2}]);
 client.{tableName}.query();
 ```
 
-This will return `[{id: x1, a: 1}, {id: x2, a: 2}]`.
+This will return `[{id: 'x1', a: 1}, {id: 'x2', a: 2}]`.
 
 If you specify a criteria, `query` will return everything that matches that criteria.  See the following:
 
 ```js
-client.{tableName}.insert([{id: x1, a: 1}, {id: x2, a: 2}, {id: 'x3', a:1}]);
+client.{tableName}.insert([{id: 'x1', a: 1}, {id: 'x2', a: 2}, {id: 'x3', a:1}]);
 client.{tableName}.query({a: 1});
 ```
 
 This will return `[{id: 'x1', a: 1}, {id: 'x3', a:1})`.
 
-#### <a name="client.count" /> `client.{tableName}.count(criteria)`
+### <a name="client.count" /> `client.{tableName}.count(criteria)`
 
 The `count(criteria)` method will return the number of items that matches the `criteria`.
 
--`criteria` is any data you want to count in the database.  If `criteria` is left blank, `count` will count all data in the database.
+-`criteria` is an `object` and is any data you want to count in the table.  If `criteria` is left blank, `count` will count all data in the table.
+
+Return value: `number`.
 
 See the following:
 
 ```js
-client.{tableName}.insert([{id: x1, a: 1}, {id: x2, a: 2}]);
+client.{tableName}.insert([{id: 'x1', a: 1}, {id: 'x2', a: 2}]);
 client.{tableName}.count();
 ```
 
@@ -246,56 +255,66 @@ This will return `2`.
 If you specify a criteria, `count` will return everything that matches that criteria.  See the following:
 
 ```js
-client.{tableName}.insert([{id: x1, a: 1}, {id: x2, a: 2}, {id: 'x3', a:1}]);
+client.{tableName}.insert([{id: 'x1', a: 1}, {id: 'x2', a: 2}, {id: 'x3', a:1}]);
 client.{tableName}.count({a: 1});
 ```
 
 This will return `2`.
 
-#### <a name="client.remove" /> `client.{tableName}.remove(id)`
+### <a name="client.remove" /> `client.{tableName}.remove(id)`
 
 The `remove(id)` method will delete data that has the corresponding `id`.
 
-- `id` is a `string` and the id of the corresponding data you want removed from the database.
+- `id` is a `string` and the id of the corresponding data you want removed from the table.
+
+Return value: none.
 
 See the following:
 
 ```js
-client.{tableName}.insert([{id: x1, a: 1}, {id: x2, a: 2}]);
+client.{tableName}.insert([{id: 'x1', a: 1}, {id: 'x2', a: 2}]);
 client.{tableName}.remove('x1');
 client.{tableName}.query();
 ```
 
-This will return `{id: x2, a: 2}`.
+This will return `{id: 'x2', a: 2}`.
 
 You can also remove multiple id's at once by using an array.  See the following:
 
 ```js
-client.{tableName}.insert([{id: x1, a: 1}, {id: x2, a: 2}, {id: 'x3', a:1}]);
+client.{tableName}.insert([{id: 'x1', a: 1}, {id: 'x2', a: 2}, {id: 'x3', a:1}]);
 client.{tableName}.remove(['x1', 'x3']);
 client.{tableName}.query();
 ```
 
 This will return `{id: 'x2', a: 2}`.
 
-#### <a name="client.empty" /> `client.{tableName}.empty()`
+### <a name="client.empty" /> `client.{tableName}.empty()`
 
-The `empty()` method clears all the data from the table.  The table itself will remain in the database.  See the following:
+The `empty()` method clears all the data from the table.  The table itself will remain in the database.
+
+Return value: none.
+
+See the following:
 
 ```js
-client.{tableName}.insert([{id: x1, a: 1}, {id: x2, a: 2}]);
+client.{tableName}.insert([{id: 'x1', a: 1}, {id: 'x2', a: 2}]);
 client.{tableName}.empty();
 client.{tableName}.query();
 ```
 
 This will return `[]`.
 
-#### <a name="client.drop" /> `client.{tableName}.drop()`
+### <a name="client.drop" /> `client.{tableName}.drop()`
 
-The `drop()` method will delete a table from the database.  See the following:
+The `drop()` method will delete a table from the database.  
+
+Return value: none.
+
+See the following:
 
 ```js
-client.{tableName}.insert([{id: x1, a: 1}, {id: x2, a: 2}]);
+client.{tableName}.insert([{id: 'x1', a: 1}, {id: 'x2', a: 2}]);
 client.{tableName}.drop();
 client.{tableName}.query();
 ```
@@ -311,6 +330,13 @@ npm run test-cov-html
 ```
 
 The command will generate an HTML page called `coverage.html`.  Open this page to view test results.
+
+
+
+
+
+
+
 
 
 
